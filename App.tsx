@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout';
 import { Home, About, Founder } from './pages/main';
 import { ServicesMain, ServiceDetail } from './pages/services';
@@ -17,34 +18,44 @@ const ScrollToTop = () => {
   return null;
 };
 
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Home />} />
+        
+        {/* Company Pages */}
+        <Route path="/about" element={<About />} />
+        <Route path="/founder" element={<Founder />} />
+        
+        {/* Service Pages */}
+        <Route path="/services" element={<ServicesMain />} />
+        <Route path="/services/:id" element={<ServiceDetail />} />
+        
+        {/* Resource Pages */}
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/research" element={<Research />} />
+        <Route path="/industries" element={<IndustriesPage />} />
+        <Route path="/partners" element={<PartnersPage />} />
+        
+        {/* Contact */}
+        <Route path="/contact" element={<Contact />} />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => {
   return (
     <Router>
-      <ScrollToTop /> {/* Ensures pages start at top */}
+      <ScrollToTop />
       <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          
-          {/* Company Pages */}
-          <Route path="/about" element={<About />} />
-          <Route path="/founder" element={<Founder />} />
-          
-          {/* Service Pages */}
-          <Route path="/services" element={<ServicesMain />} />
-          <Route path="/services/:id" element={<ServiceDetail />} />
-          
-          {/* Resource Pages */}
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/research" element={<Research />} />
-          <Route path="/industries" element={<IndustriesPage />} />
-          <Route path="/partners" element={<PartnersPage />} />
-          
-          {/* Contact */}
-          <Route path="/contact" element={<Contact />} />
-          
-          {/* Fallback */}
-          <Route path="*" element={<Home />} />
-        </Routes>
+        <AnimatedRoutes />
       </Layout>
     </Router>
   );

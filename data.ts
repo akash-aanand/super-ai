@@ -120,3 +120,44 @@ export const INDUSTRIES = [
   { title: 'Public Sector', icon: Globe, desc: 'Upskilling for government modernization.' },
   { title: 'Manufacturing', icon: Cpu, desc: 'IoT and predictive maintenance workflows.' },
 ];
+
+export const FAQS = [
+  {
+    question: "How does AI personalize learning?",
+    answer: "Our systems analyze how each student learns best and adjust in real time. The technology recognizes patterns, identifies gaps, and delivers content at the right pace."
+  },
+  {
+    question: "Will AI replace teachers?",
+    answer: "No. Super AI amplifies what teachers do. It handles routine assessment and personalization so educators can focus on mentoring and inspiration."
+  },
+  {
+    question: "What schools benefit most?",
+    answer: "Any school wanting to improve engagement and outcomes. Whether you're a small district or a large institution, our solutions scale to fit your needs."
+  },
+  {
+    question: "How quickly do results appear?",
+    answer: "Schools typically see improved engagement within weeks and measurable academic gains within a semester. The timeline depends on implementation depth."
+  },
+  {
+    question: "Is student data secure?",
+    answer: "Security is non-negotiable. We follow strict data protection standards (GDPR, SOC2) and comply with education privacy regulations."
+  }
+];
+
+export const TESTIMONIALS = [
+  {
+    quote: "Super AI transformed how our students learn. The adaptive technology meets each child where they are.",
+    author: "Maria Chen",
+    role: "Principal, Lincoln High"
+  },
+  {
+    quote: "Our teachers finally have time to teach. The AI handles the heavy lifting on assessment.",
+    author: "James Rodriguez",
+    role: "Educator, Central District"
+  },
+  {
+    quote: "I used to dread math class. Now I actually understand it because the system explains things the way my brain works.",
+    author: "Sophie Williams",
+    role: "Student, Grade 10"
+  }
+];
