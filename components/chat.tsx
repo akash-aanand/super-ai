@@ -17,7 +17,7 @@ interface Message {
 export const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: 'Hello. I am the Super-AI assistant. How can I assist you with our enterprise platform?' }
+    { role: 'model', text: 'Hello. I am the Super AIP assistant. How can I assist you with our enterprise platform?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +39,7 @@ export const ChatBot = () => {
       chatSessionRef.current = ai.chats.create({
         model: 'gemini-3-pro-preview',
         config: {
-          systemInstruction: "You are a knowledgeable and professional AI assistant for Super-AI. Keep responses concise, professional, and helpful.",
+          systemInstruction: "You are a knowledgeable and professional AI assistant for Super AIP. Keep responses concise, professional, and helpful.",
         },
       });
     }
@@ -71,18 +71,18 @@ export const ChatBot = () => {
 
   return (
     <>
-      {/* Toggle Button */}
+      {/* Toggle Button - High Z-Index to avoid overlap */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 z-50 p-3 rounded-full border border-border shadow-none transition-all duration-200 hover:border-white ${isOpen ? 'bg-neutral-900 text-foreground rotate-90' : 'bg-black text-white'}`}
+        className={`fixed bottom-6 right-6 z-[100] p-3 rounded-full border border-border shadow-none transition-all duration-200 hover:border-white ${isOpen ? 'bg-neutral-900 text-foreground rotate-90' : 'bg-black text-white'}`}
         aria-label="Toggle Chat"
       >
         {isOpen ? <X size={20} /> : <MessageSquare size={20} />}
       </button>
 
-      {/* Chat Window */}
+      {/* Chat Window - High Z-Index to avoid overlap */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[calc(100vw-3rem)] max-w-[360px] h-[500px] max-h-[calc(100vh-8rem)] bg-black rounded-md border border-border flex flex-col overflow-hidden shadow-2xl">
+        <div className="fixed bottom-24 right-6 z-[100] w-[calc(100vw-3rem)] max-w-[360px] h-[500px] max-h-[calc(100vh-8rem)] bg-black rounded-md border border-border flex flex-col overflow-hidden shadow-2xl">
           
           {/* Header */}
           <div className="bg-black p-4 flex justify-between items-center border-b border-border">
@@ -91,7 +91,7 @@ export const ChatBot = () => {
                 <Bot size={16} className="text-foreground" />
               </div>
               <div>
-                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">Super-AI Assistant</h3>
+                <h3 className="font-bold text-xs uppercase tracking-wider text-foreground">Super AIP Assistant</h3>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                   <span className="text-[10px] text-muted font-mono">ONLINE</span>

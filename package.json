@@ -1,5 +1,5 @@
 {
-  "name": "super-ai-enterprise-platform",
+  "name": "super-ai-polaris",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,11 @@
     "react-router-dom": "6.20.0",
     "lucide-react": "0.292.0",
     "@google/genai": "0.2.1",
-    "framer-motion": "10.16.4"
+    "framer-motion": "10.16.4",
+    "three": "0.160.0",
+    "@react-three/fiber": "8.15.14",
+    "@react-three/drei": "9.99.0",
+    "maath": "0.10.7"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
