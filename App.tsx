@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-d
 import { AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout';
 import { Home, About, Founder } from './pages/main';
-import { ServicesMain, ServiceDetail } from './pages/services';
+import { ServicesMain, ServiceDetail, EnterpriseSolutionsPage } from './pages/services';
 import { Blog, Research, IndustriesPage, PartnersPage } from './pages/resources';
 import { Contact } from './pages/contact';
 
@@ -32,6 +32,8 @@ const AnimatedRoutes = () => {
         
         {/* Service Pages */}
         <Route path="/services" element={<ServicesMain />} />
+        {/* Specific Enterprise Page must come before dynamic :id route */}
+        <Route path="/services/corporate" element={<EnterpriseSolutionsPage />} />
         <Route path="/services/:id" element={<ServiceDetail />} />
         
         {/* Resource Pages */}

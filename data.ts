@@ -6,14 +6,25 @@ import {
   Layout, 
   Lightbulb, 
   Users, 
-  Zap,
-  BarChart,
-  ShieldCheck,
-  Code,
-  BookOpen,
-  Bot,
-  Terminal,
-  Server
+  Zap, 
+  BarChart, 
+  ShieldCheck, 
+  Code, 
+  BookOpen, 
+  Bot, 
+  Terminal, 
+  Server, 
+  Database, 
+  Lock, 
+  Workflow, 
+  Factory, 
+  Building2, 
+  Network, 
+  MessageSquare, 
+  Smartphone, 
+  Layers, 
+  HeartPulse, 
+  Scale 
 } from 'lucide-react';
 import { BlogPost, ServicePageData } from './types';
 
@@ -39,62 +50,240 @@ export const NAV_ITEMS = [
   { label: 'Contact Us', path: '/contact' },
 ];
 
+// --- ENTERPRISE PILLARS (3D Scroll Content) ---
+export const ENTERPRISE_CONTENT = [
+  {
+    id: "neura-platform",
+    title: "SUPER AI - NEURA",
+    subtitle: "Unified Intelligence Suite",
+    description: "Your Unified Suite for Private, Offline, and Intelligent AI Interactions. SUPER AI - NEURA is a privacy-first AI platform designed to redefine how organizations process information, interact with customers, and automate workflows — all offline.",
+    features: [
+      "Offline Operation – No Internet",
+      "Zero Data Exposure",
+      "Memory-aware Sessions",
+      "20+ Languages + Semantic Search"
+    ],
+    icon: ShieldCheck,
+    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=1600",
+    stats: "100% Privacy"
+  },
+  {
+    id: "ai-agents",
+    title: "Enterprise AI Agent Solutions",
+    subtitle: "Workforce Automation",
+    description: "Deploy cognitive agents that understand goals, break down tasks, and execute workflows. From CRM automation to complex scheduling, our agents act as digital employees.",
+    features: [
+      "Cognitive Agents (Multi-modal)",
+      "Autonomous Task Execution",
+      "AI Tutors & Learning Agents",
+      "Domain-Specific Agents"
+    ],
+    icon: Bot,
+    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=1600",
+    stats: "24/7 Uptime"
+  },
+  {
+    id: "robotics",
+    title: "Enterprise Robotics Solutions",
+    subtitle: "Physical AI Integration",
+    description: "Bridge the digital and physical worlds with AI on four legs and intelligent assistants. Our robotics solutions bring autonomy to surveillance, logistics, and interaction.",
+    features: [
+      "Quadruped Robot – AI on Four Legs",
+      "Humanoid Robot – Intelligent Assistant",
+      "Robotic Arm (Coming Soon)",
+      "Visual SLAM & LiDAR"
+    ],
+    icon: Cpu,
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=1600",
+    stats: "L4 Autonomy"
+  }
+];
+
+// --- NEURA PRODUCT MODULES ---
+export const NEURA_MODULES = [
+  {
+    title: "DLLM – NeuraDesk",
+    description: "Understands PDFs, Word, Excel. Extracts insights, answers questions, and summarizes documents.",
+    features: ["100% local compliance processing", "Handles 1000+ page manuals"],
+    icon: Database,
+    image: "https://images.unsplash.com/photo-1558494949-ef526b01201b?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    title: "SLM – Neura-Edge",
+    description: "Embedded AI for edge use. Enables offline voice, chat, and sensor automation with multilingual deployment readiness.",
+    features: ["Speech-to-intent offline", "Local terminals & IoT sensors"],
+    icon: Server,
+    image: "https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    title: "AI Chatbot Assistant",
+    description: "Supports websites, WhatsApp, and apps. Features natural language processing and API triggers for 24/7 support.",
+    features: ["Lead generation & feedback", "Real-time Actions (No Cloud)"],
+    icon: MessageSquare,
+    image: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&q=80&w=600"
+  }
+];
+
+export const NEURA_KEY_FEATURES = [
+    "Offline operation (no internet needed)",
+    "Multi-file & messaging platform support",
+    "Memory-aware sessions",
+    "20+ language support & semantic search",
+    "Zero data exposure & built-in encryption",
+    "Easy API & tool integration"
+];
+
+export const AGENT_SOLUTIONS_DETAILS = [
+    {
+        title: "Cognitive Agents",
+        features: ["Multi-modal input: text, voice, sensors", "CRM, email, and scheduling automation", "Contextual interaction with memory", "API integration with ERP, CRM, HRMS"]
+    },
+    {
+        title: "Autonomous Task Agents",
+        features: ["Task breakdown, execution, and correction", "LLM + rule-based automation", "Decision-making with tools like Slack, Jira, Zapier, Excel"]
+    },
+    {
+        title: "AI Tutors & Learning Agents",
+        features: ["Personalized learning, quizzes", "Voice-based Q&A and navigation", "LMS & classroom support", "NEP 2020 & AICTE aligned"]
+    },
+    {
+        title: "Developer & Domain-Specific Agents",
+        features: ["Custom agents for Healthcare, Legal", "Transport & Finance optimization", "Logistics automation"]
+    }
+];
+
+export const ROBOTICS_SOLUTIONS_DETAILS = [
+    { title: "Quadruped Robot", desc: "AI on Four Legs." },
+    { title: "Humanoid Robot", desc: "Intelligent Assistant." },
+    { title: "Robotic Arm", desc: "Coming Soon." }
+];
+
+// --- EDUCATIONAL LABS (Agents & Robotics) ---
+export const LABS_DATA = [
+  {
+    category: "AI Agent Lab",
+    title: "School Education",
+    items: [
+      "Voice/chatbot agents",
+      "Block-based logic builders",
+      "NLP & emotion detection",
+      "Simulated AI classroom scenarios"
+    ],
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    category: "AI & Robotics Labs",
+    title: "School Education (Grades 6–12)",
+    items: [
+      "DIY kits: obstacle avoiders, line followers",
+      "Object/face recognition modules",
+      "Block-based & Python coding",
+      "NEP-aligned curriculum + LMS"
+    ],
+    image: "https://images.unsplash.com/photo-1581092921461-eab62e97a783?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    category: "Skill Development",
+    title: "Higher Education",
+    items: [
+      "Humanoids, IoT kits",
+      "Raspberry Pi, Arduino, ESP32",
+      "SLAM, speech AI, cloud simulation",
+      "Industry-ready certifications"
+    ],
+    image: "https://images.unsplash.com/photo-1535378437327-b7149236addf?auto=format&fit=crop&q=80&w=600"
+  }
+];
+
+// --- DEPLOYMENT & ECOSYSTEM DATA ---
+export const DEPLOYMENT_STATS = [
+  { label: "Industries", value: "IT, BPO, BFSI, Industry 4.0", icon: Factory },
+  { label: "Public Sector", value: "Smart Governance, Utilities", icon: Building2 },
+  { label: "Education", value: "E-learning, Skill Labs", icon: GraduationCap },
+];
+
+export const ECOSYSTEM_PARTNERS = [
+  "LangChain", "Auto-GPT", "OpenAI", "Microsoft", "Google Cloud", "IBM Watson", "CBSE", "AICTE", "IITs", "Super AI R&D"
+];
+
+// --- CUSTOM SOLUTIONS DATA ---
+export const CUSTOM_SOLUTIONS_DATA = [
+  {
+    question: "End-to-End Solution Development",
+    answer: "We handle the entire lifecycle from problem definition to deployment, ensuring your custom AI solution fits perfectly into your existing infrastructure."
+  },
+  {
+    question: "Domain-Specific AI Models",
+    answer: "Tailored predictive models for maintenance, computer vision for surveillance, and NLP for specialized legal or medical documents. Includes predictive analytics and CV."
+  },
+  {
+    question: "Legacy & IoT System Integration",
+    answer: "Seamlessly connect modern AI agents with legacy ERP systems and industrial IoT sensors without overhauling your tech stack."
+  },
+  {
+    question: "Agile Prototyping & Deployment",
+    answer: "Rapid MVP development followed by scalable deployment on your preferred cloud or on-premise servers."
+  },
+  {
+    question: "Use Cases",
+    answer: "Predictive maintenance, CRM automation, smart logistics, surveillance, quality checks."
+  }
+];
+
 export const BOOK_SERIES = [
   {
     grade: "1st",
     title: "Tiny Techies",
     subtitle: "Coding and AI for Young Learners",
-    color: "from-sky-300 via-cyan-400 to-blue-500",
-    accent: "#ec4899" // Pink accent for circle
-  },
-  {
-    grade: "2nd",
-    title: "Smart Start",
-    subtitle: "Coding and AI for Young Learners",
-    color: "from-orange-200 via-orange-300 to-rose-400",
-    accent: "#10b981" // Green accent
+    color: "bg-[#89CFF0]", // Sky Blue
+    gradeColor: "#EC4899", // Pink
+    nepColor: "#EC4899",   // Pink
+    image: "https://images.unsplash.com/photo-1515248133009-b9e4c7d5f70e?auto=format&fit=crop&q=80&w=600"
   },
   {
     grade: "3rd",
     title: "Digital Buddies",
     subtitle: "Computers and AI for Beginners",
-    color: "from-yellow-300 via-amber-400 to-yellow-500",
-    accent: "#ef4444" // Red accent
-  },
-  {
-    grade: "4th",
-    title: "Code Quest",
-    subtitle: "Discovering AI and Computer",
-    color: "from-green-300 via-emerald-400 to-green-600",
-    accent: "#3b82f6" // Blue accent
+    color: "bg-[#FFD700]", // Gold/Yellow
+    gradeColor: "#EF4444", // Red
+    nepColor: "#3B82F6",   // Blue
+    image: "https://images.unsplash.com/photo-1626379953822-baec19c3accd?auto=format&fit=crop&q=80&w=600"
   },
   {
     grade: "5th",
     title: "Tech Explorers",
     subtitle: "A Journey into Computers and AI",
-    color: "from-purple-400 via-purple-500 to-indigo-600",
-    accent: "#10b981" // Green accent
+    color: "bg-[#A855F7]", // Purple
+    gradeColor: "#22C55E", // Green
+    nepColor: "#22C55E",   // Green
+    image: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&q=80&w=600"
   },
   {
     grade: "6th",
     title: "Code Create Conquer",
     subtitle: "AI and Computer Application",
-    color: "from-blue-500 via-cyan-600 to-blue-700",
-    accent: "#84cc16" // Lime accent
+    color: "bg-[#3B82F6]", // Blue
+    gradeColor: "#10B981", // Emerald
+    nepColor: "#10B981",
+    image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=80&w=600"
   },
   {
     grade: "7th",
     title: "The Tech World",
     subtitle: "Exploring Computer With AI",
-    color: "from-orange-400 via-red-500 to-red-600",
-    accent: "#0ea5e9" // Sky accent
+    color: "bg-[#FB7185]", // Rose
+    gradeColor: "#3B82F6", // Blue
+    nepColor: "#3B82F6",
+    image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=600"
   },
   {
     grade: "8th",
     title: "Future Ready",
     subtitle: "AI and Computer Skills for Tomorrow",
-    color: "from-violet-600 via-purple-700 to-purple-900",
-    accent: "#f43f5e" // Rose accent
+    color: "bg-[#7C3AED]", // Violet
+    gradeColor: "#F97316", // Orange
+    nepColor: "#F97316",
+    image: "https://images.unsplash.com/photo-1577896335477-2858506f970d?auto=format&fit=crop&q=80&w=600"
   }
 ];
 
@@ -232,29 +421,62 @@ export const PARTNERS = [
   'AICTE', 'Ministry of Education', 'NEAT', 'AWS', 'Google', 'Microsoft'
 ];
 
-// Lat/Long approximate coordinates for 3D placement
+// Lat/Long coordinates for 3D placement
+// Primary Hub: India
 export const GLOBAL_PRESENCE = [
-  { name: "India", lat: 20.59, lng: 78.96 },
-  { name: "Mexico", lat: 23.63, lng: -102.55 },
-  { name: "United States (USA)", lat: 37.09, lng: -95.71 },
-  { name: "Canada", lat: 56.13, lng: -106.34 },
-  { name: "Italy", lat: 41.87, lng: 12.56 },
-  { name: "Ghana", lat: 7.94, lng: -1.02 },
-  { name: "Oman", lat: 21.47, lng: 55.97 },
-  { name: "Bahrain", lat: 26.06, lng: 50.55 },
-  { name: "Sri Lanka", lat: 7.87, lng: 80.77 },
-  { name: "Malaysia", lat: 4.21, lng: 101.97 },
-  { name: "United Kingdom (UK)", lat: 55.37, lng: -3.43 },
-  { name: "Caribbean Islands", lat: 18.00, lng: -66.00 }, // Approximate center
-  { name: "South Africa", lat: -30.55, lng: 22.93 },
-  { name: "United Arab Emirates (Dubai)", lat: 23.42, lng: 53.84 }
+  { name: "India", lat: 20.59, lng: 78.96, isHub: true, region: "Asia" },
+  { name: "Mexico", lat: 23.63, lng: -102.55, region: "Americas" },
+  { name: "United States (USA)", lat: 37.09, lng: -95.71, region: "Americas" },
+  { name: "Canada", lat: 56.13, lng: -106.34, region: "Americas" },
+  { name: "Italy", lat: 41.87, lng: 12.56, region: "Europe" },
+  { name: "United Kingdom (UK)", lat: 55.37, lng: -3.43, region: "Europe" },
+  { name: "Ghana", lat: 7.94, lng: -1.02, region: "Africa" },
+  { name: "South Africa", lat: -30.55, lng: 22.93, region: "Africa" },
+  { name: "Oman", lat: 21.47, lng: 55.97, region: "Middle East" },
+  { name: "Bahrain", lat: 26.06, lng: 50.55, region: "Middle East" },
+  { name: "Dubai (UAE)", lat: 25.20, lng: 55.27, region: "Middle East" },
+  { name: "Sri Lanka", lat: 7.87, lng: 80.77, region: "Asia" },
+  { name: "Malaysia", lat: 4.21, lng: 101.97, region: "Asia" },
+  { name: "Caribbean Islands", lat: 18.00, lng: -66.00, region: "Americas" }
 ];
 
 export const INDUSTRIES = [
-  { title: 'Higher Education', icon: GraduationCap, desc: 'Universities and Engineering Colleges.' },
-  { title: 'Government', icon: Globe, desc: 'Public sector skilling initiatives.' },
-  { title: 'Technology', icon: Cpu, desc: 'Corporate training and assessment.' },
-  { title: 'Research', icon: Brain, desc: 'R&D labs and innovation hubs.' },
+  { 
+      title: 'Higher Education', 
+      icon: GraduationCap, 
+      desc: 'Universities and Engineering Colleges.',
+      image: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800"
+  },
+  { 
+      title: 'Government', 
+      icon: Globe, 
+      desc: 'Public sector skilling initiatives.',
+      image: "https://images.unsplash.com/photo-1577760219663-fd81f71422d5?auto=format&fit=crop&q=80&w=800"
+  },
+  { 
+      title: 'Technology', 
+      icon: Cpu, 
+      desc: 'Corporate training and assessment.',
+      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800"
+  },
+  { 
+      title: 'Research', 
+      icon: Brain, 
+      desc: 'R&D labs and innovation hubs.',
+      image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=800"
+  },
+  { 
+      title: 'Healthcare', 
+      icon: HeartPulse, 
+      desc: 'AI diagnostics and patient data management.',
+      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800"
+  },
+  { 
+      title: 'Legal', 
+      icon: Scale, 
+      desc: 'Document intelligence and case law analysis.',
+      image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800"
+  },
 ];
 
 export const FAQS = [

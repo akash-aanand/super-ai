@@ -76,11 +76,11 @@ export const MotionPage = ({ children }: { children?: React.ReactNode }) => (
   </motion.div>
 );
 
-export const FadeIn = ({ children, delay = 0, className = '' }: { children?: React.ReactNode, delay?: number, className?: string }) => (
+export const FadeIn: React.FC<{ children?: React.ReactNode, delay?: number, className?: string }> = ({ children, delay = 0, className = '' }) => (
   <motion.div
     initial="hidden"
     whileInView="visible"
-    viewport={{ once: true, margin: "0px 0px -50px 0px" }}
+    viewport={{ once: true, amount: 0.2 }} // Relaxed viewport trigger
     variants={{
       hidden: { opacity: 0, y: 30, filter: 'blur(4px)' },
       visible: { 
@@ -100,13 +100,40 @@ export const Stagger = ({ children, className = '' }: { children?: React.ReactNo
   <motion.div
     initial="hidden"
     whileInView="visible"
-    viewport={{ once: true, margin: "0px 0px -100px 0px" }}
+    viewport={{ once: true, amount: 0.1 }}
     variants={staggerContainerVariant}
     className={className}
   >
     {children}
   </motion.div>
 );
+
+export const ScrollReveal3D: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => {
+    const ref = useRef(null);
+    const { scrollYProgress } = useScroll({
+        target: ref,
+        offset: ["start end", "end start"]
+    });
+
+    const rotateX = useTransform(scrollYProgress, [0, 0.5], [15, 0]);
+    const opacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+    const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
+
+    return (
+        <motion.div 
+            ref={ref}
+            style={{ 
+                rotateX, 
+                opacity,
+                scale,
+                transformPerspective: 1000 
+            }}
+            className={className}
+        >
+            {children}
+        </motion.div>
+    );
+}
 
 // --- Content Components ---
 
@@ -271,6 +298,131 @@ export const Card: React.FC<CardProps> = ({ children, className = '', hover = tr
   </motion.div>
 );
 
+// --- NEW COMPONENT: Spotlight 3D Card ---
+interface SpotlightCardProps {
+  children?: React.ReactNode;
+  className?: string;
+  backgroundImage?: string;
+  enableTilt?: boolean;
+}
+
+export const SpotlightCard: React.FC<SpotlightCardProps> = ({ 
+  children, 
+  className = "", 
+  backgroundImage,
+  enableTilt = true
+}) => {
+  const divRef = useRef<HTMLDivElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(0);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseX = useSpring(x, { stiffness: 150, damping: 20 });
+  const mouseY = useSpring(y, { stiffness: 150, damping: 20 });
+
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [7, -7]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-7, 7]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) return;
+    const rect = divRef.current.getBoundingClientRect();
+
+    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    
+    // Tilt calculations
+    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
+    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setOpacity(1);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    setOpacity(0);
+    x.set(0);
+    y.set(0);
+  };
+
+  const handleMouseEnter = () => {
+    setOpacity(1);
+  };
+
+  const handleMouseLeave = () => {
+    setOpacity(0);
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <ScrollReveal3D className="h-full">
+    <motion.div
+      ref={divRef}
+      onMouseMove={handleMouseMove}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`relative h-full overflow-hidden rounded-xl border border-white/10 bg-black/40 shadow-2xl ${className}`}
+      style={{
+         perspective: 1000,
+      }}
+    >
+       <motion.div 
+         className="h-full relative preserve-3d"
+         style={{
+            rotateX: enableTilt ? rotateX : 0,
+            rotateY: enableTilt ? rotateY : 0,
+            transformStyle: "preserve-3d"
+         }}
+       >
+        <div
+            className="pointer-events-none absolute -inset-px opacity-0 transition duration-300"
+            style={{
+            opacity,
+            background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(197, 160, 89, 0.15), transparent 40%)`,
+            }}
+        />
+        
+        {/* Background Image Layer */}
+        {backgroundImage && (
+            <div className="absolute inset-0 z-0">
+                <img src={backgroundImage} alt="" className="w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500 scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+            </div>
+        )}
+
+        {/* Content */}
+        <div className="relative z-10 h-full p-6 md:p-8 flex flex-col transform-gpu">
+            {children}
+        </div>
+
+        {/* Border Glow */}
+        <div
+            className="pointer-events-none absolute inset-0 rounded-xl transition duration-300"
+            style={{
+                background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, rgba(197, 160, 89, 0.3), transparent 40%)`,
+                opacity: opacity,
+                maskImage: 'linear-gradient(black, black) content-box, linear-gradient(black, black)',
+                WebkitMaskImage: 'linear-gradient(black, black) content-box, linear-gradient(black, black)',
+                maskComposite: 'exclude',
+                WebkitMaskComposite: 'xor',
+                padding: '1px'
+            }}
+        />
+      </motion.div>
+    </motion.div>
+    </ScrollReveal3D>
+  );
+};
+
 export const FeatureItem = ({ icon: Icon, title, description }: { icon: LucideIcon; title: string; description: string }) => (
   <div className="flex flex-col items-start h-full w-full">
     <div className="h-12 w-12 rounded-xl bg-neutral-900/80 border border-white/10 flex items-center justify-center mb-6 text-accent shadow-lg group-hover:border-accent/30 group-hover:shadow-[0_0_15px_rgba(197,160,89,0.15)] transition-all duration-300">
@@ -343,24 +495,23 @@ export const ReviewCard: React.FC<{ quote: string; author: string; role: string 
 );
 
 // --- 3D INTERACTIVE BOOK CARD ---
-// Uses Framer Motion transform specifically for mouse-following 3D rotation
-export const BookCard = ({ grade, title, subtitle, color, accent }: any) => {
+// Updated to match specific 2:3 vertical layout with torn paper effect
+export const BookCard = ({ grade, title, subtitle, color, gradeColor, nepColor, accent, image }: any) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  // Springs for smooth movement
+  // Fallback for older data structure if needed, though data.ts is updated.
+  const finalGradeColor = gradeColor || accent || '#10b981';
+  const finalNepColor = nepColor || accent || '#10b981';
+
   const mouseX = useSpring(x, { stiffness: 150, damping: 20 });
   const mouseY = useSpring(y, { stiffness: 150, damping: 20 });
 
-  // Transform logic: Map mouse -0.5/0.5 to rotation degrees
-  // RotateY handles horizontal tilt (left/right)
-  // RotateX handles vertical tilt (up/down)
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [15, -15]); 
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-15, 15]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [10, -10]); 
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-10, 10]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    // Calculate normalized position (-0.5 to 0.5)
     const xPct = (e.clientX - rect.left) / rect.width - 0.5;
     const yPct = (e.clientY - rect.top) / rect.height - 0.5;
     x.set(xPct);
@@ -375,12 +526,11 @@ export const BookCard = ({ grade, title, subtitle, color, accent }: any) => {
   return (
     <motion.div
       variants={fadeInUpVariant}
-      className="relative w-[280px] h-[400px] flex-shrink-0 perspective-1000 group cursor-pointer"
+      className="relative w-[300px] h-[450px] flex-shrink-0 perspective-1000 group cursor-pointer"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ perspective: 1000 }} // Ensure perspective is set for 3D children
+      style={{ perspective: 1000 }}
     >
-      {/* 3D Book Container */}
       <motion.div
         className="relative w-full h-full preserve-3d"
         style={{
@@ -388,126 +538,152 @@ export const BookCard = ({ grade, title, subtitle, color, accent }: any) => {
           rotateY: rotateY,
           transformStyle: "preserve-3d"
         }}
-        whileHover={{ z: 20, scale: 1.05 }}
+        whileHover={{ translateZ: 20, scale: 1.02 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
         {/* Front Cover */}
         <div 
-          className={`absolute inset-0 bg-gradient-to-br ${color} rounded-r-md rounded-l-sm shadow-2xl backface-hidden z-20 overflow-hidden border-l border-white/20`}
+          className={`absolute inset-0 ${color} shadow-2xl backface-hidden z-20 overflow-hidden rounded-r-lg border-l-2 border-black/20`}
         >
-           {/* Texture Overlays */}
-           <div className="absolute inset-0 opacity-40 mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat"></div>
-           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-white/10 opacity-60"></div>
+           {/* Circuit Pattern Overlay */}
+           <div className="absolute inset-0 opacity-30" style={{ 
+               backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)', 
+               backgroundSize: '20px 20px, 40px 40px, 40px 40px' 
+           }}>
+              {/* Tech Lines */}
+              <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                 <path d="M10,10 L50,10 L50,50" fill="none" stroke="black" strokeWidth="1" />
+                 <circle cx="50" cy="50" r="3" fill="black" />
+                 <path d="M280,400 L240,400 L240,350" fill="none" stroke="black" strokeWidth="1" />
+                 <circle cx="240" cy="350" r="3" fill="black" />
+              </svg>
+           </div>
            
-           {/* Circuit Lines Decorative Background */}
-           <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+           <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 mix-blend-overlay"></div>
            
-           {/* Gold Border / Edge Highlight */}
-           <div className="absolute inset-0 border border-white/10 rounded-r-md pointer-events-none group-hover:border-accent/40 transition-colors duration-500"></div>
-
-           {/* Content Layout matching the image */}
-           <div className="relative p-5 flex flex-col h-full z-30">
+           {/* Top Content Layout */}
+           <div className="relative p-6 flex flex-col h-full z-30">
               
               {/* Header: Grade + UNICEF Tag */}
-              <div className="flex justify-between items-start mb-6">
-                  <div className="relative">
+              <div className="flex justify-between items-start mb-4 relative z-20">
+                  {/* Circular Grade Badge - Top Left */}
+                  <div className="relative -ml-4 -mt-4">
                     <div 
-                        className="h-14 w-14 rounded-full flex items-center justify-center shadow-lg border-2 border-white relative z-10"
-                        style={{ backgroundColor: accent || '#10b981' }}
+                        className="h-20 w-20 rounded-full flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.3)] border-[3px] border-white relative z-10 bg-white"
                     >
-                        <div className="text-center leading-none text-white drop-shadow-md">
-                            <span className="block text-xl font-black">{grade.replace(/\D/g, '')}</span>
-                            <span className="block text-[10px] font-bold uppercase">{grade.replace(/\d/g, '')}</span>
+                        <div 
+                          className="w-full h-full rounded-full flex flex-col items-center justify-center text-white"
+                          style={{ backgroundColor: finalGradeColor }}
+                        >
+                            <span className="block text-3xl font-black leading-none drop-shadow-sm">{(grade || '').replace(/\D/g, '')}</span>
+                            <span className="block text-[10px] font-bold uppercase leading-none mt-0.5 drop-shadow-sm">{(grade || '').replace(/\d/g, '')}</span>
                         </div>
                     </div>
-                    {/* Circle shadow/depth */}
-                    <div className="absolute top-1 left-1 h-14 w-14 rounded-full bg-black/30 blur-sm -z-10"></div>
                   </div>
 
-                  <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-sm shadow-sm mt-1">
-                      <p className="text-[6px] text-black font-bold uppercase tracking-wider">UNICEF OGIP-aligned content</p>
+                  {/* Top Strip Label - Enhanced to look like screenshot pill */}
+                  <div className="bg-white px-3 py-1.5 rounded-full shadow-lg mt-0 border border-gray-100 relative -mr-4 flex items-center">
+                      <p className="text-[7px] text-neutral-900 font-bold uppercase tracking-widest text-center">UNICEF OGIP-aligned content</p>
                   </div>
               </div>
 
-              {/* Middle: Title */}
-              <div className="mt-2 text-center relative">
-                  <h3 className="text-3xl font-black text-white leading-[0.9] mb-2 uppercase tracking-tight drop-shadow-lg font-sans" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+              {/* Title Section - Centered */}
+              <div className="text-center relative z-10 mb-6">
+                  <h3 className="text-3xl font-black text-white leading-[0.9] mb-2 uppercase tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] font-sans">
                     {title}
                   </h3>
-                  <div className="flex items-center justify-center gap-2 opacity-90">
-                      <div className="h-px w-4 bg-white/60"></div>
-                      <p className="text-white text-[8px] font-bold uppercase tracking-widest">{subtitle}</p>
-                      <div className="h-px w-4 bg-white/60"></div>
+                  <div className="flex items-center justify-center gap-3 opacity-90">
+                      <div className="h-px w-6 bg-white/80"></div>
+                      <p className="text-white text-[9px] font-bold uppercase tracking-[0.2em] whitespace-nowrap overflow-hidden text-ellipsis max-w-[180px] drop-shadow-sm">{subtitle}</p>
+                      <div className="h-px w-6 bg-white/80"></div>
                   </div>
               </div>
               
-              {/* Image Placeholder Area (Simulated with abstract tech shapes) */}
-              <div className="flex-1 my-4 relative rounded-lg overflow-hidden border border-white/20 bg-black/20 backdrop-blur-sm group-hover:backdrop-blur-none transition-all duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                  {/* Abstract Hexagon Grid */}
-                  <div className="w-full h-full opacity-30" style={{ 
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0l10 10-10 10L0 10z' fill='%23ffffff' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                  }}></div>
-                  <div className="absolute bottom-2 left-0 right-0 text-center z-20">
-                     <div className="inline-block p-1 bg-black/40 rounded-full border border-white/10">
-                        <Cpu size={24} className="text-white opacity-80" />
-                     </div>
+              {/* Central Image with Torn Paper Effect */}
+              {/* FIX: Ensure min-height and proper clipping so image is visible */}
+              <div className="relative flex-1 w-full mx-auto mb-6 group-hover:scale-105 transition-transform duration-500 min-h-[150px]">
+                  <div 
+                    className="absolute inset-0 bg-white z-0 transform scale-[1.03]" 
+                    style={{ 
+                        clipPath: "polygon(0% 10%, 5% 5%, 10% 8%, 15% 3%, 20% 8%, 25% 4%, 30% 9%, 35% 2%, 40% 8%, 45% 3%, 50% 9%, 55% 4%, 60% 8%, 65% 3%, 70% 9%, 75% 2%, 80% 8%, 85% 3%, 90% 8%, 95% 4%, 100% 9%, 100% 90%, 95% 95%, 90% 92%, 85% 96%, 80% 91%, 75% 95%, 70% 90%, 65% 94%, 60% 91%, 55% 95%, 50% 90%, 45% 95%, 40% 90%, 35% 95%, 30% 91%, 25% 96%, 20% 92%, 15% 95%, 10% 90%, 5% 95%, 0% 90%)" 
+                    }}
+                  ></div>
+                  <div 
+                    className="relative w-full h-full overflow-hidden z-10 bg-neutral-800"
+                    style={{ 
+                        clipPath: "polygon(0% 10%, 5% 5%, 10% 8%, 15% 3%, 20% 8%, 25% 4%, 30% 9%, 35% 2%, 40% 8%, 45% 3%, 50% 9%, 55% 4%, 60% 8%, 65% 3%, 70% 9%, 75% 2%, 80% 8%, 85% 3%, 90% 8%, 95% 4%, 100% 9%, 100% 90%, 95% 95%, 90% 92%, 85% 96%, 80% 91%, 75% 95%, 70% 90%, 65% 94%, 60% 91%, 55% 95%, 50% 90%, 45% 95%, 40% 90%, 35% 95%, 30% 91%, 25% 96%, 20% 92%, 15% 95%, 10% 90%, 5% 95%, 0% 90%)" 
+                    }}
+                  >
+                      {image ? (
+                        <>
+                          <img src={image} alt={title} className="w-full h-full object-cover opacity-90 relative z-20" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-30"></div>
+                          {/* Tech Overlay Elements inside image */}
+                          <div className="absolute top-3 right-3 flex gap-1 z-40">
+                             <div className="w-1.5 h-1.5 bg-white/70 rounded-full"></div>
+                             <div className="w-1.5 h-1.5 bg-white/70 rounded-full"></div>
+                          </div>
+                          <div className="absolute bottom-3 left-3 border border-white/40 rounded px-1.5 py-0.5 bg-black/40 backdrop-blur-sm z-40">
+                             <div className="text-[6px] font-mono text-white/90 tracking-widest">AI.EDU.V1</div>
+                          </div>
+                        </>
+                      ) : (
+                         <div className="w-full h-full flex items-center justify-center bg-neutral-800">
+                            <Cpu className="text-white/20" size={48} />
+                         </div>
+                      )}
                   </div>
               </div>
 
               {/* Bottom: NEP Badge & Website */}
-              <div className="flex justify-between items-end mt-auto">
+              <div className="flex justify-between items-end mt-auto z-10 pt-2">
+                   {/* NEP Badge - Styled like the sticker in screenshot */}
                    <div 
-                      className="px-2 py-1.5 rounded bg-white shadow-lg flex flex-col items-center justify-center border border-gray-200"
-                      style={{ borderLeft: `4px solid ${accent || '#10b981'}` }}
+                      className="bg-white rounded-lg shadow-lg p-[2px] transform -rotate-2 origin-bottom-left"
                    >
-                        <span className="text-[6px] text-black font-bold uppercase mb-0.5">Aligned With</span>
-                        <span className="text-sm font-black text-black leading-none" style={{ color: accent || '#10b981' }}>NEP</span>
-                        <span className="text-[8px] font-bold text-gray-600">2020</span>
+                        <div 
+                            className="rounded-md px-2 py-1.5 flex flex-col items-center justify-center"
+                            style={{ backgroundColor: finalNepColor }}
+                        >
+                            <span className="text-[5px] text-white font-bold uppercase leading-none mb-0.5 tracking-wider opacity-90">Aligned With</span>
+                            <span className="text-[12px] font-black text-white leading-none tracking-wide">NEP</span>
+                            <span className="text-[8px] font-bold text-white leading-none mt-0.5 tracking-wider">2020</span>
+                        </div>
                    </div>
                    
+                   {/* Branding */}
                    <div className="text-right">
-                       <div className="flex items-center justify-end gap-1 mb-1">
-                           <div className="h-1 w-1 rounded-full bg-white"></div>
-                           <div className="h-1 w-1 rounded-full bg-white opacity-50"></div>
+                       <div className="flex items-center justify-end gap-1.5 mb-1.5">
+                           <div className="h-1.5 w-1.5 rounded-full bg-white shadow-sm"></div>
+                           <div className="h-1.5 w-1.5 rounded-full bg-white/50"></div>
+                           <div className="h-1.5 w-1.5 rounded-full bg-white/30"></div>
                        </div>
-                       <p className="text-[7px] text-white/80 font-mono tracking-widest uppercase">www.superaip.com</p>
+                       <div className="bg-white/10 backdrop-blur-md px-2 py-1 rounded-sm border border-white/20">
+                          <p className="text-[7px] text-white font-bold font-mono tracking-widest uppercase">www.superaip.com</p>
+                       </div>
                    </div>
               </div>
            </div>
-           
-           {/* Moving Shine Effect */}
-           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:animate-[shine_1.5s_ease-in-out_infinite] pointer-events-none z-40 mix-blend-overlay"></div>
         </div>
 
-        {/* Spine (Left Side) */}
+        {/* Spine */}
         <div 
           className="absolute left-0 top-0 bottom-0 w-[16px] bg-neutral-900 origin-left border-l border-white/10"
           style={{ transform: "rotateY(-90deg) translateX(-8px)" }}
-        >
-          <div className="w-full h-full bg-gradient-to-b from-white/20 to-black/80 flex flex-col items-center justify-center py-4">
-              <span className="text-[8px] text-white font-bold rotate-90 whitespace-nowrap opacity-70 tracking-widest">{title}</span>
-          </div>
-        </div>
+        ></div>
 
-        {/* Pages (Right Side Thickness) */}
+        {/* Pages Thickness */}
         <div 
           className="absolute right-0 top-[2px] bottom-[2px] w-[14px] bg-white origin-right"
           style={{ transform: "rotateY(-90deg) translateX(7px)" }}
         >
-           <div className="w-full h-full bg-[linear-gradient(to_right,#e5e5e5_1px,transparent_1px)] bg-[size:2px_100%] opacity-80 box-border border-y border-gray-300"></div>
+           <div className="w-full h-full bg-[linear-gradient(to_right,#ccc_1px,transparent_1px)] bg-[size:2px_100%] opacity-50 box-border border-y border-gray-300"></div>
         </div>
         
         {/* Back Cover */}
         <div 
-          className={`absolute inset-0 bg-neutral-900 rounded-l-md rounded-r-sm shadow-xl`}
+          className={`absolute inset-0 bg-neutral-800 rounded-l-lg`}
           style={{ transform: "translateZ(-14px) rotateY(180deg)" }}
-        ></div>
-
-        {/* Shadow Drop (Dynamic) */}
-        <div 
-          className="absolute top-full left-4 right-4 h-4 bg-black/60 blur-xl rounded-[100%] transition-opacity duration-300 opacity-60 group-hover:opacity-40 group-hover:scale-110"
-          style={{ transform: "translateZ(-30px)" }}
         ></div>
 
       </motion.div>
@@ -515,265 +691,157 @@ export const BookCard = ({ grade, title, subtitle, color, accent }: any) => {
   );
 }
 
-// --- NEW COMPONENT: Horizontal 3D Book Shelf ---
-export const BookShelf = ({ books }: { books: any[] }) => {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
-    const [isPaused, setIsPaused] = useState(false);
+// Input Component
+export const Input = ({ label, type = "text", rows, placeholder, className = "" }: { label: string; type?: string; rows?: number; placeholder?: string; className?: string }) => (
+  <div className={`mb-6 ${className}`}>
+    <label className="block text-xs font-mono font-bold text-muted mb-2 uppercase tracking-widest">{label}</label>
+    {rows ? (
+      <textarea
+        rows={rows}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-white/10 bg-neutral-900/50 shadow-inner focus:border-accent focus:ring-1 focus:ring-accent sm:text-sm p-4 transition-all duration-300 text-foreground outline-none placeholder-neutral-700 resize-none"
+      />
+    ) : (
+      <input
+        type={type}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-white/10 bg-neutral-900/50 shadow-inner focus:border-accent focus:ring-1 focus:ring-accent sm:text-sm p-4 transition-all duration-300 text-foreground outline-none placeholder-neutral-700"
+      />
+    )}
+  </div>
+);
 
-    const checkScroll = () => {
-        if (scrollRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-            setCanScrollLeft(scrollLeft > 10);
-            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-        }
-    };
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const scrollAmount = 320; // Width of card + gap
-            const targetScroll = scrollRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
-            scrollRef.current.scrollTo({
-                left: targetScroll,
-                behavior: 'smooth'
-            });
-        }
-    };
-
-    // Auto Scroll Effect
-    useEffect(() => {
-        if (isPaused) return;
-        
-        const interval = setInterval(() => {
-            if (scrollRef.current) {
-                const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-                const maxScroll = scrollWidth - clientWidth;
-                
-                if (scrollLeft >= maxScroll - 20) { // Near end
-                     // Scroll back to start for loop effect
-                     scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                     scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-                }
-            }
-        }, 3000); // 3 seconds per slide
-
-        return () => clearInterval(interval);
-    }, [isPaused]);
-
-    return (
-        <div 
-            className="relative group"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            onTouchStart={() => setIsPaused(true)}
-        >
-            {/* Navigation Buttons */}
-            <AnimatePresence>
-                {canScrollLeft && (
-                    <motion.button 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        onClick={() => scroll('left')}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent hover:text-black transition-all duration-300 shadow-xl"
-                    >
-                        <ChevronLeft size={24} />
-                    </motion.button>
-                )}
-            </AnimatePresence>
-            
-            <AnimatePresence>
-                {canScrollRight && (
-                    <motion.button 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        onClick={() => scroll('right')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-black/50 backdrop-blur-md rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent hover:text-black transition-all duration-300 shadow-xl"
-                    >
-                        <ChevronRight size={24} />
-                    </motion.button>
-                )}
-            </AnimatePresence>
-
-            {/* Scroll Container */}
-            <div 
-                ref={scrollRef}
-                onScroll={checkScroll}
-                className="flex gap-12 overflow-x-auto pb-16 pt-10 px-10 snap-x snap-mandatory hide-scrollbar"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-                {books.map((book, idx) => (
-                    <div key={idx} className="snap-center">
-                        <BookCard {...book} />
-                    </div>
-                ))}
-            </div>
-
-            {/* Shelf Floor Effect */}
-            <div className="absolute bottom-12 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent z-0"></div>
-            <div className="absolute bottom-12 left-0 right-0 h-20 bg-gradient-to-b from-white/5 to-transparent blur-xl z-0 pointer-events-none"></div>
-        </div>
-    );
-};
-
-// --- NEW COMPONENT: Interactive Feature Row (Zig-Zag) ---
-export const InteractiveFeature = ({ 
-  title, 
-  subtitle, 
-  description, 
-  items, 
-  image, 
-  align = 'left',
-  ctaText = "Learn More",
-  ctaLink = "#"
-}: { 
-  title: string; 
-  subtitle: string; 
-  description: string; 
-  items: string[]; 
-  image: string; 
-  align?: 'left' | 'right'; 
-  ctaText?: string; 
-  ctaLink?: string;
-}) => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseX = useSpring(x, { stiffness: 100, damping: 20 });
-  const mouseY = useSpring(y, { stiffness: 100, damping: 20 });
-  
-  // 3D tilt specifically for the image card
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [7, -7]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-7, 7]);
-  
-  // Parallax scroll effect
-  const yParallax = useTransform(scrollYProgress, [0, 1], [50, -50]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
-    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  return (
-    <div ref={ref} className="py-12 md:py-24 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-      {/* Content Side */}
-      <div className={`${align === 'right' ? 'lg:order-2' : ''}`}>
-         <FadeIn>
-            <Badge className="mb-4">{subtitle}</Badge>
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">{title}</h2>
-            <p className="text-lg text-muted mb-8 leading-relaxed">{description}</p>
-            <CheckList items={items} />
-            <div className="mt-8">
-               <Button to={ctaLink} variant="outline" className="group">
-                  {ctaText} <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-               </Button>
-            </div>
-         </FadeIn>
-      </div>
-
-      {/* Interactive Image Side */}
-      <motion.div 
-         className={`relative ${align === 'right' ? 'lg:order-1' : ''}`}
-         style={{ y: yParallax, perspective: 1000 }}
-         onMouseMove={handleMouseMove}
-         onMouseLeave={() => { x.set(0); y.set(0); }}
-      >
-          <motion.div
-             style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-             className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group bg-neutral-900"
-          >
-             {/* Background Image */}
-             <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${image})` }}></div>
-             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500"></div>
-             
-             {/* Overlay Elements 3D */}
-             <motion.div 
-               className="absolute bottom-6 left-6 right-6 bg-black/60 backdrop-blur-md p-6 rounded-xl border border-white/10"
-               style={{ transform: "translateZ(30px)" }}
-             >
-                <div className="flex items-center gap-4">
-                   <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center text-accent">
-                      <Star size={18} fill="currentColor" />
-                   </div>
-                   <div>
-                      <p className="text-xs text-accent font-mono uppercase tracking-wider mb-1">Featured Program</p>
-                      <p className="text-white font-bold text-sm">AICTE & NEP 2020 Aligned</p>
-                   </div>
-                </div>
-             </motion.div>
-          </motion.div>
-
-          {/* Decorative Back Elements */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-accent/20 to-purple-500/20 blur-3xl opacity-30 -z-10 rounded-full"></div>
-      </motion.div>
-    </div>
-  );
-}
-
-// --- Updated Component: Tech Card for Image-based Labs ---
-export const TechCard = ({ title, description, icon: Icon, image }: any) => {
-    return (
-        <Card noPadding className="h-full min-h-[300px] group overflow-hidden">
-            <div className="absolute inset-0 z-0">
-                <img src={image} alt={title} className="w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity duration-500 group-hover:scale-105 transform" />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/80 to-transparent"></div>
-                
-                {/* Holographic Scan Effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/10 to-transparent translate-y-[-100%] group-hover:animate-[scan_2s_ease-in-out_infinite] pointer-events-none z-10 border-b border-accent/20"></div>
-            </div>
-            
-            <div className="relative z-20 p-8 flex flex-col h-full justify-end">
-                <div className="mb-auto p-3 bg-neutral-950/50 backdrop-blur-md rounded-lg w-fit border border-white/10 text-accent group-hover:bg-accent group-hover:text-black transition-colors duration-300 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                    <Icon size={24} />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">{title}</h3>
-                <p className="text-muted text-sm leading-relaxed mb-6 opacity-80 group-hover:opacity-100 transition-opacity">{description}</p>
-                <div className="flex items-center text-accent text-xs font-mono uppercase tracking-widest font-bold border-t border-white/10 pt-4 mt-auto">
-                    Explore Specs <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-            </div>
-        </Card>
-    )
-}
-
+// CheckList Component
 export const CheckList = ({ items }: { items: string[] }) => (
-  <ul className="space-y-4">
-    {items.map((item, idx) => (
-      <motion.li 
-        key={idx} 
-        initial={{ opacity: 0, x: -10 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: idx * 0.1, duration: 0.5, ease: EASE_PREMIUM }}
-        className="flex items-start group"
-      >
-        <div className="flex-shrink-0 h-5 w-5 rounded-full bg-accent/10 border border-accent/30 text-accent flex items-center justify-center mt-0.5 group-hover:bg-accent group-hover:text-black transition-colors duration-300">
-          <Check size={12} strokeWidth={3} />
-        </div>
-        <span className="ml-3 text-muted group-hover:text-foreground transition-colors duration-300 text-sm md:text-base">{item}</span>
-      </motion.li>
+  <ul className="space-y-3">
+    {items.map((item, i) => (
+      <li key={i} className="flex items-start text-sm text-muted">
+        <div className="w-1.5 h-1.5 bg-accent rounded-full mt-1.5 mr-3 shrink-0 shadow-[0_0_8px_rgba(197,160,89,0.5)]"></div>
+        <span className="leading-relaxed">{item}</span>
+      </li>
     ))}
   </ul>
 );
 
-export const Input = ({ label, type = "text", placeholder, rows }: { label: string; type?: string; placeholder?: string; rows?: number }) => (
-  <motion.div className="mb-6 w-full" variants={fadeInUpVariant}>
-    <label className="block text-xs font-mono font-bold text-muted mb-2 uppercase tracking-widest">{label}</label>
-    {rows ? (
-      <textarea rows={rows} className="w-full rounded-lg border border-white/10 bg-neutral-900/50 shadow-inner focus:border-accent focus:ring-1 focus:ring-accent sm:text-sm p-4 transition-all duration-300 text-foreground placeholder-neutral-700 outline-none resize-none font-sans" placeholder={placeholder}></textarea>
-    ) : (
-      <input type={type} className="w-full rounded-lg border border-white/10 bg-neutral-900/50 shadow-inner focus:border-accent focus:ring-1 focus:ring-accent sm:text-sm p-4 transition-all duration-300 text-foreground placeholder-neutral-700 outline-none font-sans" placeholder={placeholder} />
-    )}
-  </motion.div>
+// TechCard Component
+export const TechCard = ({ title, description, icon: Icon, image }: { title: string; description: string; icon: any; image: string }) => (
+    <SpotlightCard backgroundImage={image}>
+        <div className="flex flex-col h-full relative z-10">
+            <div className="h-12 w-12 rounded-lg bg-black/50 border border-white/10 flex items-center justify-center mb-6 text-accent backdrop-blur-md">
+                <Icon size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+            <p className="text-sm text-muted leading-relaxed mb-6">{description}</p>
+        </div>
+    </SpotlightCard>
 );
+
+// BookShelf Component
+export const BookShelf = ({ books }: { books: any[] }) => {
+    return (
+        <div className="w-full overflow-x-auto pb-12 pt-4 px-4 custom-scrollbar">
+            <div className="flex gap-8 w-max mx-auto">
+                {books.map((book, idx) => (
+                    <BookCard key={idx} {...book} accent={book.gradeColor} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// InteractiveFeature Component
+export const InteractiveFeature = ({ title, subtitle, description, items, image, align = 'left', ctaLink, ctaText }: any) => {
+    const isLeft = align === 'left';
+    return (
+        <div className={`flex flex-col ${isLeft ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-20 py-12 md:py-20 border-b border-white/5 last:border-0`}>
+            {/* Image Side */}
+            <div className="w-full lg:w-1/2 relative group">
+                <div className={`absolute -inset-4 bg-gradient-to-r ${isLeft ? 'from-accent/20 to-transparent' : 'from-transparent to-accent/20'} opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-700 rounded-full`}></div>
+                <div className="relative rounded-2xl overflow-hidden border border-white/10 aspect-video shadow-2xl bg-neutral-800" style={{ aspectRatio: '16/9' }}>
+                    <img 
+                        src={image} 
+                        alt={title} 
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 z-0" 
+                    />
+                    
+                    {/* UI Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
+                        <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                             <span className="text-xs font-mono text-white/80 uppercase tracking-widest">Active Module</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content Side */}
+            <div className="w-full lg:w-1/2">
+                <div className="mb-2 flex items-center gap-3">
+                    <span className="h-px w-8 bg-accent"></span>
+                    <span className="text-accent font-mono text-xs uppercase tracking-widest">{subtitle}</span>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">{title}</h3>
+                <p className="text-muted text-lg leading-relaxed mb-8">{description}</p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    {items.map((item: string, i: number) => (
+                        <div key={i} className="flex items-center text-sm text-white/80">
+                            <Check size={14} className="text-accent mr-2" />
+                            {item}
+                        </div>
+                    ))}
+                </div>
+
+                <Button to={ctaLink} variant="outline" className="group">
+                    {ctaText} <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+            </div>
+        </div>
+    );
+};
+
+// EnterpriseScrollSection Component
+export const EnterpriseScrollSection = ({ items }: { items: any[] }) => {
+    return (
+        <div className="py-20 space-y-32">
+            {items.map((item, idx) => (
+                <div key={idx} className="relative group">
+                    {/* Background number */}
+                    <div className="absolute -top-20 -left-10 text-[200px] font-black text-white/5 select-none pointer-events-none z-0">
+                        0{idx + 1}
+                    </div>
+                    
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center relative z-10 px-4 max-w-7xl mx-auto">
+                        <div className={`order-2 ${idx % 2 === 0 ? 'lg:order-2' : 'lg:order-1'}`}>
+                             <div className="relative rounded-2xl overflow-hidden border border-white/10 aspect-[4/3] shadow-2xl group-hover:border-accent/30 transition-colors duration-500">
+                                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                             </div>
+                        </div>
+                        
+                        <div className={`order-1 ${idx % 2 === 0 ? 'lg:order-1' : 'lg:order-2'}`}>
+                             <div className="flex items-center gap-4 mb-6">
+                                 <div className="p-3 bg-neutral-900 border border-white/10 rounded-lg text-accent">
+                                     <item.icon size={32} />
+                                 </div>
+                                 <span className="text-sm font-mono text-accent uppercase tracking-widest">{item.subtitle}</span>
+                             </div>
+                             
+                             <h2 className="text-4xl font-bold text-white mb-6">{item.title}</h2>
+                             <p className="text-lg text-muted leading-relaxed mb-8">{item.description}</p>
+                             
+                             <div className="space-y-4 border-t border-white/5 pt-8">
+                                 {item.features.map((feat: string, fIdx: number) => (
+                                     <div key={fIdx} className="flex items-center text-white/80">
+                                         <div className="w-1.5 h-1.5 bg-accent rounded-full mr-3 shadow-[0_0_5px_#C5A059]"></div>
+                                         {feat}
+                                     </div>
+                                 ))}
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}

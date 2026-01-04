@@ -1,33 +1,10 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Float, Stars, Sparkles, PerspectiveCamera, OrbitControls } from '@react-three/drei';
+import { Float, Stars, Sparkles, PerspectiveCamera, OrbitControls, Html, Line, QuadraticBezierLine } from '@react-three/drei';
 import * as THREE from 'three';
 import { GLOBAL_PRESENCE } from '../data';
 
 // Fix for JSX Intrinsic Elements in React Three Fiber
-// Augmenting React's JSX namespace to support R3F elements
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      group: any;
-      mesh: any;
-      icosahedronGeometry: any;
-      meshPhysicalMaterial: any;
-      meshBasicMaterial: any;
-      sphereGeometry: any;
-      points: any;
-      bufferGeometry: any;
-      bufferAttribute: any;
-      pointsMaterial: any;
-      ambientLight: any;
-      spotLight: any;
-      pointLight: any;
-      fog: any;
-    }
-  }
-}
-
-// Also ensure global JSX is augmented if using older TS/React setups
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -37,6 +14,8 @@ declare global {
       meshPhysicalMaterial: any;
       meshBasicMaterial: any;
       sphereGeometry: any;
+      ringGeometry: any;
+      cylinderGeometry: any;
       points: any;
       bufferGeometry: any;
       bufferAttribute: any;
@@ -45,6 +24,8 @@ declare global {
       spotLight: any;
       pointLight: any;
       fog: any;
+      color: any;
+      [elemName: string]: any;
     }
   }
 }
@@ -52,6 +33,8 @@ declare global {
 // --- MATERIALS ---
 const GOLD_COLOR = new THREE.Color('#C5A059');
 const ACCENT_COLOR = new THREE.Color('#D4AF37');
+const BLUE_ACCENT = new THREE.Color('#00F0FF');
+const RED_ACCENT = new THREE.Color('#FF2E63');
 
 // --- HELPER FUNCTIONS ---
 // Convert Lat/Lng to 3D Cartesian Coordinates on a sphere
@@ -212,48 +195,165 @@ const InteractiveParticles = ({ count = 300 }) => {
   );
 };
 
-const GlobeWithMarkers = () => {
-    const globeRadius = 1.8;
-    const pointsRef = useRef<THREE.Group>(null);
+// --- GLOBE COMPONENTS ---
 
-    useFrame((state) => {
-        if(pointsRef.current) {
-            // Pulse effect for markers
-            const scale = 1 + Math.sin(state.clock.elapsedTime * 3) * 0.1;
-            pointsRef.current.scale.set(scale, scale, scale);
+// Arc connection between two points on sphere
+const ConnectionArc: React.FC<{ start: THREE.Vector3, end: THREE.Vector3, color?: THREE.Color }> = ({ start, end, color = GOLD_COLOR }) => {
+  const mid = start.clone().add(end).multiplyScalar(0.5).normalize().multiplyScalar(start.length() * 1.5);
+  const ref = useRef<any>(null);
+
+  useFrame((state) => {
+    if (ref.current) {
+        // Subtle animation of the line width or dash
+        ref.current.material.dashOffset -= 0.01;
+    }
+  });
+
+  return (
+    <QuadraticBezierLine
+      ref={ref}
+      start={start}
+      end={end}
+      mid={mid}
+      color={color}
+      lineWidth={1}
+      dashed
+      dashScale={5}
+      dashSize={2}
+      gapSize={1}
+      transparent
+      opacity={0.4}
+    />
+  );
+};
+
+const LocationMarker = ({ position, name, region, isSelected, onClick, isHub }: any) => {
+  const [hovered, setHovered] = useState(false);
+  
+  // Outer ring scale
+  const outerScale = hovered || isSelected ? 1.5 : 1;
+  const innerColor = isHub ? RED_ACCENT : (hovered || isSelected ? BLUE_ACCENT : ACCENT_COLOR);
+
+  return (
+    <group position={position} onClick={onClick} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+        {/* Clickable Area */}
+        <mesh visible={false}>
+            <sphereGeometry args={[0.15, 8, 8]} />
+            <meshBasicMaterial />
+        </mesh>
+
+        {/* Pin Body */}
+        <mesh position={[0, 0.02, 0]}>
+            <cylinderGeometry args={[0.01, 0.002, 0.1, 8]} />
+            <meshBasicMaterial color={innerColor} transparent opacity={0.8} />
+        </mesh>
+        
+        {/* Glowing Head */}
+        <mesh position={[0, 0.08, 0]}>
+            <sphereGeometry args={[0.02, 16, 16]} />
+            <meshBasicMaterial color={innerColor} toneMapped={false} />
+        </mesh>
+
+        {/* Outer Glow Ring (Disc) */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]} scale={[outerScale, outerScale, outerScale]}>
+            <ringGeometry args={[0.04, 0.05, 32]} />
+            <meshBasicMaterial color={innerColor} transparent opacity={0.6} side={THREE.DoubleSide} />
+        </mesh>
+        
+        {/* Tooltip */}
+        {(hovered || isSelected) && (
+            <Html distanceFactor={10} position={[0, 0.2, 0]} zIndexRange={[100, 0]}>
+                <div className="bg-black/90 border border-white/20 backdrop-blur-md px-4 py-2 rounded-md text-white whitespace-nowrap shadow-[0_0_20px_rgba(0,0,0,0.9)] pointer-events-none flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${isHub ? 'bg-red-500 animate-pulse' : 'bg-cyan-400'}`}></div>
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold leading-none">{name}</span>
+                        {region && <span className="text-[10px] text-gray-400 font-mono mt-1 leading-none uppercase tracking-wider">{region}</span>}
+                    </div>
+                </div>
+            </Html>
+        )}
+    </group>
+  )
+};
+
+const GlobeWithMarkers = ({ selectedLocation }: { selectedLocation?: string | null }) => {
+    const globeRadius = 2.2;
+    const groupRef = useRef<THREE.Group>(null);
+    const { camera } = useThree();
+
+    // Data Processing
+    const indiaHub = GLOBAL_PRESENCE.find(l => l.isHub);
+    const indiaPos = indiaHub ? latLngToVector3(indiaHub.lat, indiaHub.lng, globeRadius) : new THREE.Vector3();
+
+    useFrame((state, delta) => {
+        if (selectedLocation) {
+            const loc = GLOBAL_PRESENCE.find(l => l.name === selectedLocation);
+            if (loc && groupRef.current) {
+                // 1. Calculate Target Rotation to face camera
+                const targetQ = new THREE.Quaternion();
+                // Get local position of the country on the sphere
+                const p = latLngToVector3(loc.lat, loc.lng, globeRadius).normalize();
+                
+                // Get camera direction relative to the center (0,0,0)
+                const camDir = state.camera.position.clone().normalize();
+                
+                // Calculate rotation needed to align 'p' with 'camDir'
+                targetQ.setFromUnitVectors(p, camDir);
+                
+                // Smoothly rotate globe
+                groupRef.current.quaternion.slerp(targetQ, 4 * delta);
+                
+                // 2. Zoom Camera In
+                const currentDist = state.camera.position.length();
+                const targetDist = 4.5; // Zoomed in distance
+                const newDist = THREE.MathUtils.lerp(currentDist, targetDist, 3 * delta);
+                state.camera.position.setLength(newDist);
+            }
+        } else {
+             if (groupRef.current) {
+                 // Idle Rotation
+                 groupRef.current.rotation.y += delta * 0.1;
+             }
+             
+             // Zoom Camera Out to default
+             const currentDist = state.camera.position.length();
+             const targetDist = 6.5; 
+             if (Math.abs(currentDist - targetDist) > 0.01) {
+                 const newDist = THREE.MathUtils.lerp(currentDist, targetDist, 2 * delta);
+                 state.camera.position.setLength(newDist);
+             }
         }
     });
 
     return (
-        <group>
-            {/* Dark Tech Globe */}
+        <group ref={groupRef}>
+            {/* Dark Tech Globe Base */}
             <mesh>
                 <sphereGeometry args={[globeRadius, 64, 64]} />
                 <meshPhysicalMaterial 
-                    color="#050505"
-                    roughness={0.6}
-                    metalness={0.2}
-                    emissive="#111"
-                    emissiveIntensity={0.2}
+                    color="#020202"
+                    roughness={0.7}
+                    metalness={0.5}
+                    emissive="#000"
                 />
             </mesh>
             
-            {/* Wireframe Overlay */}
+            {/* Wireframe Grid Overlay */}
             <mesh>
-                 <sphereGeometry args={[globeRadius + 0.01, 24, 24]} />
+                 <sphereGeometry args={[globeRadius + 0.005, 32, 32]} />
                  <meshBasicMaterial 
-                    color="#333" 
+                    color="#1a1a1a" 
                     wireframe 
                     transparent 
-                    opacity={0.15} 
+                    opacity={0.3} 
                 />
             </mesh>
 
-            {/* Glowing Atmosphere */}
-             <mesh scale={[1.1, 1.1, 1.1]}>
+            {/* Glowing Atmosphere/Horizon */}
+             <mesh scale={[1.2, 1.2, 1.2]}>
                 <sphereGeometry args={[globeRadius, 32, 32]} />
                 <meshBasicMaterial 
-                    color={GOLD_COLOR} 
+                    color="#1a2b3c" 
                     transparent 
                     opacity={0.05} 
                     side={THREE.BackSide}
@@ -262,21 +362,33 @@ const GlobeWithMarkers = () => {
             </mesh>
 
             {/* Location Markers */}
-            <group ref={pointsRef}>
+            <group>
                 {GLOBAL_PRESENCE.map((location, i) => {
-                    const pos = latLngToVector3(location.lat, location.lng, globeRadius + 0.02);
+                    const pos = latLngToVector3(location.lat, location.lng, globeRadius);
                     return (
-                        <group key={i} position={pos}>
-                            <mesh>
-                                <sphereGeometry args={[0.03, 8, 8]} />
-                                <meshBasicMaterial color={ACCENT_COLOR} />
-                            </mesh>
-                            {/* Outer Glow Ring */}
-                            <mesh>
-                                <sphereGeometry args={[0.06, 8, 8]} />
-                                <meshBasicMaterial color={GOLD_COLOR} transparent opacity={0.3} />
-                            </mesh>
-                        </group>
+                        <LocationMarker 
+                            key={i} 
+                            position={pos} 
+                            name={location.name}
+                            region={location.region}
+                            isHub={location.isHub}
+                            isSelected={selectedLocation === location.name}
+                            onClick={() => { /* Handle 3D Click if needed */ }}
+                        />
+                    )
+                })}
+            </group>
+
+            {/* Intelligent Connections (Hub to Spokes) */}
+            <group>
+                {indiaHub && GLOBAL_PRESENCE.map((location, i) => {
+                    if (location.isHub) return null;
+                    // Connect India to every other point
+                    const endPos = latLngToVector3(location.lat, location.lng, globeRadius);
+                    // Use a slightly different color for variety
+                    const lineColor = i % 2 === 0 ? BLUE_ACCENT : GOLD_COLOR;
+                    return (
+                        <ConnectionArc key={`conn-${i}`} start={indiaPos} end={endPos} color={lineColor} />
                     )
                 })}
             </group>
@@ -310,20 +422,31 @@ export const NetworkScene = () => {
     )
 }
 
-export const WorldGlobe = () => {
+export const WorldGlobe = ({ selectedLocation }: { selectedLocation?: string | null }) => {
     return (
         <Canvas className="w-full h-full" dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
-            <PerspectiveCamera makeDefault position={[0, 0, 4.5]} />
-            <ambientLight intensity={1} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} color="#fff" />
-            <pointLight position={[-10, 0, -5]} intensity={0.5} color={GOLD_COLOR} />
+            <PerspectiveCamera makeDefault position={[0, 0, 6.5]} />
             
-            <GlobeWithMarkers />
+            <color attach="background" args={['#000']} />
+            <fog attach="fog" args={['#000', 5, 15]} />
+
+            <ambientLight intensity={0.2} />
+            <pointLight position={[10, 10, 10]} intensity={1.0} color="#fff" />
+            <pointLight position={[-10, 0, 5]} intensity={0.5} color={BLUE_ACCENT} />
+            <pointLight position={[0, -10, 0]} intensity={0.3} color={RED_ACCENT} />
             
+            <GlobeWithMarkers selectedLocation={selectedLocation} />
+            
+            {/* Auto-rotation is handled manually in GlobeWithMarkers for better control during selection */}
             <OrbitControls 
                 enableZoom={false} 
-                autoRotate 
-                autoRotateSpeed={1.0} 
                 enablePan={false}
-                minPolarAngle={Math.PI / 3}
-                maxPolarAngle={Math.PI / 1
+                autoRotate={false}
+                minPolarAngle={Math.PI / 4}
+                maxPolarAngle={Math.PI / 1.5}
+            />
+            
+            <Stars radius={100} depth={50} count={1000} factor={3} saturation={0} fade />
+        </Canvas>
+    )
+}

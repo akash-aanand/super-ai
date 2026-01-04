@@ -1,7 +1,7 @@
 import React from 'react';
-import { Section, SectionHeader, Button, Card, FeatureItem, Badge, CheckList, Hero, MotionPage, FadeIn, Stagger, Accordion, ReviewCard } from '../components/ui';
+import { Section, SectionHeader, Button, Card, FeatureItem, Badge, CheckList, Hero, MotionPage, FadeIn, Stagger, Accordion, ReviewCard, SpotlightCard } from '../components/ui';
 import { HeroScene, NetworkScene } from '../components/scene';
-import { ArrowRight, Brain, Cpu, Globe, Sparkles, Layout, Zap, Users, BarChart } from 'lucide-react';
+import { ArrowRight, Brain, Cpu, Globe, Sparkles, Layout, Zap, Users, BarChart, Target, MonitorPlay, GraduationCap, Code } from 'lucide-react';
 import { FAQS, TESTIMONIALS } from '../data';
 import { Link } from 'react-router-dom';
 
@@ -24,87 +24,153 @@ export const Home = () => {
       {/* Remove negative margin on mobile/tablet to prevent collisions. Apply overlap only on lg screens where vertical space exists. */}
       <Section className="relative z-10 pt-0 mt-8 md:mt-12 lg:-mt-24">
         <Stagger className="grid md:grid-cols-3 gap-6">
-           <Card className="hover:border-accent/50 bg-neutral-900/80 backdrop-blur-xl border-white/10">
-              <div className="flex items-center gap-4 mb-4">
+           <SpotlightCard className="bg-neutral-900/80 backdrop-blur-xl border-white/10" backgroundImage="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=800">
+              <div className="flex items-center gap-4 mb-4 relative z-10">
                  <div className="p-3 rounded-lg bg-neutral-900 border border-white/10 text-accent"><Brain size={24} /></div>
                  <h3 className="text-lg font-bold text-foreground">AICTE Approved</h3>
               </div>
-              <p className="text-muted text-sm leading-relaxed">
+              <p className="text-muted text-sm leading-relaxed relative z-10">
                  Recognized internships that provide valid academic credits and industry certification.
               </p>
-           </Card>
-           <Card className="hover:border-accent/50 bg-neutral-900/80 backdrop-blur-xl border-white/10">
-              <div className="flex items-center gap-4 mb-4">
+           </SpotlightCard>
+           
+           <SpotlightCard className="bg-neutral-900/80 backdrop-blur-xl border-white/10" backgroundImage="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800">
+              <div className="flex items-center gap-4 mb-4 relative z-10">
                  <div className="p-3 rounded-lg bg-neutral-900 border border-white/10 text-accent"><BarChart size={24} /></div>
                  <h3 className="text-lg font-bold text-foreground">Skill Analytics</h3>
               </div>
-              <p className="text-muted text-sm leading-relaxed">
+              <p className="text-muted text-sm leading-relaxed relative z-10">
                  Data-driven insights into student performance to bridge the employability gap.
               </p>
-           </Card>
-           <Card className="hover:border-accent/50 bg-neutral-900/80 backdrop-blur-xl border-white/10">
-              <div className="flex items-center gap-4 mb-4">
+           </SpotlightCard>
+           
+           <SpotlightCard className="bg-neutral-900/80 backdrop-blur-xl border-white/10" backgroundImage="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800">
+              <div className="flex items-center gap-4 mb-4 relative z-10">
                  <div className="p-3 rounded-lg bg-neutral-900 border border-white/10 text-accent"><Globe size={24} /></div>
                  <h3 className="text-lg font-bold text-foreground">Nationwide Reach</h3>
               </div>
-              <p className="text-muted text-sm leading-relaxed">
+              <p className="text-muted text-sm leading-relaxed relative z-10">
                  Partnering with universities across the country to deliver virtual labs and training.
               </p>
-           </Card>
+           </SpotlightCard>
         </Stagger>
       </Section>
 
       {/* 3. Deep Dive - Interactive Layout with 3D Background */}
       <Section className="relative overflow-hidden">
         {/* 3D Network Background */}
-        <div className="absolute inset-0 z-0 opacity-60 pointer-events-none">
+        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
             <NetworkScene />
         </div>
+        {/* Background Glow for Text Readability */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-black via-black/80 to-transparent z-0 pointer-events-none"></div>
         
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center relative z-10">
           <FadeIn>
             <Badge className="mb-6">The Platform</Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-              A comprehensive ecosystem for <br/> <span className="text-accent">Future Skills.</span>
+              A comprehensive ecosystem for <span className="text-accent">Future Skills.</span>
             </h2>
-            <p className="text-lg text-muted mb-8 leading-relaxed">
+            <p className="text-lg text-muted mb-10 leading-relaxed border-l-2 border-accent/30 pl-6">
               Super AI Polaris goes beyond traditional e-learning. We provide a complete ecosystem comprising virtual labs, mentorship, and project-based learning to ensure job readiness.
             </p>
-            <CheckList items={[
-              "Virtual Internship Programs (VIP)",
-              "Outcome-Based Education (OBE) alignment",
-              "Faculty Development & Upskilling"
-            ]} />
+            
+            {/* Optimized Feature Blocks */}
+            <div className="space-y-6">
+                <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-accent/30 transition-all duration-300">
+                    <div className="p-2 bg-black rounded-lg text-accent border border-white/10 group-hover:scale-110 transition-transform">
+                        <MonitorPlay size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-white font-bold mb-1 group-hover:text-accent transition-colors">Virtual Internship Programs (VIP)</h4>
+                        <p className="text-sm text-muted">AICTE-aligned, credit-based virtual internships solving real-world problem statements.</p>
+                    </div>
+                </div>
+
+                <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-accent/30 transition-all duration-300">
+                    <div className="p-2 bg-black rounded-lg text-accent border border-white/10 group-hover:scale-110 transition-transform">
+                        <Target size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-white font-bold mb-1 group-hover:text-accent transition-colors">Outcome-Based Education (OBE)</h4>
+                        <p className="text-sm text-muted">Curriculum designed to deliver measurable skill acquisition and industry deployability.</p>
+                    </div>
+                </div>
+
+                <div className="group flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-accent/30 transition-all duration-300">
+                    <div className="p-2 bg-black rounded-lg text-accent border border-white/10 group-hover:scale-110 transition-transform">
+                        <GraduationCap size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-white font-bold mb-1 group-hover:text-accent transition-colors">Faculty Development & Upskilling</h4>
+                        <p className="text-sm text-muted">Empowering educators with modern AI tools and pedagogical strategies.</p>
+                    </div>
+                </div>
+            </div>
+
             <div className="mt-10">
               <Button to="/services" variant="outline" className="group">
-                Explore Programs <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                Explore Ecosystem <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
           </FadeIn>
           
+          {/* Right Column: Holographic Dashboard Visualization */}
           <FadeIn delay={0.2} className="relative mt-8 lg:mt-0">
-             <div className="absolute -inset-4 bg-gradient-to-r from-accent/20 to-purple-500/20 blur-3xl opacity-30 rounded-full"></div>
-             <Card noPadding className="aspect-square md:aspect-[4/3] relative flex items-center justify-center bg-neutral-950/80 backdrop-blur-sm border-white/10 w-full">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-800/50 via-neutral-950 to-neutral-950 opacity-40"></div>
-                {/* Abstract UI representation */}
-                <div className="relative z-10 w-3/4 space-y-4">
-                   <div className="h-2 w-1/3 bg-neutral-800 rounded-full mb-8"></div>
-                   <div className="space-y-3">
-                      <div className="h-16 w-full bg-neutral-900 border border-white/5 rounded-lg flex items-center px-4 gap-4">
-                         <div className="h-8 w-8 rounded-full bg-accent/20"></div>
-                         <div className="flex-1 h-2 bg-neutral-800 rounded-full"></div>
-                      </div>
-                      <div className="h-16 w-full bg-neutral-900 border border-white/5 rounded-lg flex items-center px-4 gap-4 ml-4 border-l-accent/50">
-                         <div className="h-8 w-8 rounded-full bg-white/10"></div>
-                         <div className="flex-1 h-2 bg-neutral-800 rounded-full"></div>
-                      </div>
-                      <div className="h-16 w-full bg-neutral-900 border border-white/5 rounded-lg flex items-center px-4 gap-4">
-                         <div className="h-8 w-8 rounded-full bg-white/10"></div>
-                         <div className="flex-1 h-2 bg-neutral-800 rounded-full"></div>
-                      </div>
-                   </div>
+             <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 blur-3xl opacity-40 rounded-full"></div>
+             
+             <SpotlightCard className="bg-[#0A0A0A]/90 backdrop-blur-xl border border-white/10 p-8 w-full max-w-lg mx-auto shadow-2xl relative overflow-hidden">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs font-mono text-white tracking-widest uppercase">System Operational</span>
+                    </div>
+                    <span className="text-xs font-mono text-muted">v2.4.0</span>
                 </div>
-             </Card>
+
+                {/* Main Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-black/50 p-4 rounded-lg border border-white/5">
+                        <span className="text-xs text-muted uppercase block mb-1">Active Learners</span>
+                        <span className="text-2xl font-bold text-white">12,405</span>
+                    </div>
+                    <div className="bg-black/50 p-4 rounded-lg border border-white/5">
+                        <span className="text-xs text-muted uppercase block mb-1">Projects Deployed</span>
+                        <span className="text-2xl font-bold text-accent">8,932</span>
+                    </div>
+                </div>
+
+                {/* Progress Bars */}
+                <div className="space-y-6">
+                    <div>
+                        <div className="flex justify-between text-xs mb-2">
+                            <span className="text-white">Internship Completion Rate</span>
+                            <span className="text-accent">94%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-accent w-[94%] shadow-[0_0_10px_#C5A059]"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="flex justify-between text-xs mb-2">
+                            <span className="text-white">Faculty Certified</span>
+                            <span className="text-blue-400">850+</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 w-[75%] shadow-[0_0_10px_#3B82F6]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Simulated Code/Log */}
+                <div className="mt-8 p-4 bg-black rounded-lg border border-white/5 font-mono text-[10px] text-muted space-y-1">
+                    <div className="flex gap-2"><span className="text-green-500">➜</span> <span className="text-white">init_virtual_lab(module="CV")</span></div>
+                    <div className="flex gap-2"><span className="text-green-500">➜</span> <span>Loading dataset... [Done]</span></div>
+                    <div className="flex gap-2"><span className="text-green-500">➜</span> <span>Connecting to mentor_node...</span></div>
+                    <div className="flex gap-2"><span className="text-green-500">➜</span> <span className="animate-pulse">_</span></div>
+                </div>
+             </SpotlightCard>
           </FadeIn>
         </div>
       </Section>
@@ -118,29 +184,29 @@ export const Home = () => {
           center 
         />
         <Stagger className="grid md:grid-cols-3 gap-8">
-          <Card hover={true}>
+          <SpotlightCard backgroundImage="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800">
             <FeatureItem 
                icon={Cpu}
                title="Students"
                description="Gain industry-ready skills through AICTE-aligned internships and capstone projects."
             />
             <div className="mt-6 pt-6 border-t border-white/5 mt-auto">
-               <Link to="/services/internships" className="text-xs font-mono font-bold text-accent hover:text-white uppercase tracking-wider flex items-center">View Internships <ArrowRight size={12} className="ml-2" /></Link>
+               <Link to="/services/k12" className="text-xs font-mono font-bold text-accent hover:text-white uppercase tracking-wider flex items-center">View Internships <ArrowRight size={12} className="ml-2" /></Link>
             </div>
-          </Card>
+          </SpotlightCard>
 
-          <Card hover={true}>
+          <SpotlightCard backgroundImage="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800">
             <FeatureItem 
                icon={Layout}
                title="Institutions"
                description="Set up Centers of Excellence and modernize curriculum with our FDPs."
             />
             <div className="mt-6 pt-6 border-t border-white/5 mt-auto">
-               <Link to="/services/fdp" className="text-xs font-mono font-bold text-accent hover:text-white uppercase tracking-wider flex items-center">For Faculty <ArrowRight size={12} className="ml-2" /></Link>
+               <Link to="/services/teacher-training" className="text-xs font-mono font-bold text-accent hover:text-white uppercase tracking-wider flex items-center">For Faculty <ArrowRight size={12} className="ml-2" /></Link>
             </div>
-          </Card>
+          </SpotlightCard>
 
-          <Card hover={true}>
+          <SpotlightCard backgroundImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800">
             <FeatureItem 
                icon={Users}
                title="Corporate"
@@ -149,7 +215,7 @@ export const Home = () => {
             <div className="mt-6 pt-6 border-t border-white/5 mt-auto">
                <Link to="/services/corporate" className="text-xs font-mono font-bold text-accent hover:text-white uppercase tracking-wider flex items-center">Partner With Us <ArrowRight size={12} className="ml-2" /></Link>
             </div>
-          </Card>
+          </SpotlightCard>
         </Stagger>
       </Section>
 
